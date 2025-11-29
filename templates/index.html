@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="sv">
+<head>
+    <meta charset="utf-8">
+    <title>Jobbtracker</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; }
+        h1 { margin-bottom: 0.5rem; }
+        form { margin-bottom: 1.5rem; }
+        input, textarea { width: 100%; padding: 0.4rem; margin: 0.2rem 0; }
+        button { padding: 0.4rem 0.8rem; cursor: pointer; }
+        .job-card { border: 1px solid #ddd; padding: 0.8rem; margin-bottom: 0.7rem; border-radius: 6px; }
+        .job-header { display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 0.8rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
+        .badge-open { background: #f0f0f0; }
+        .badge-applied { background: #d3ffd3; }
+        .actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+        .filters a { margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Jobbtracker</h1>
+    <p>Håll koll på vilka jobb du ska söka och vilka du redan sökt.</p>
+
+    <h2>Lägg till nytt jobb</h2>
+    <form action="{{ url_for('add_job') }}" method="post">
+        <input type="text" name="title" placeholder="Jobbtitel" required>
+        <input type="text" name="company" placeholder="Företag" required>
+        <input type="url" name="link" placeholder="Länk till annons (valfritt)">
+        <textarea name="notes" placeholder="Anteckningar (valfritt)" rows="2"></textarea>
+        <button type="submit">Spara jobb</button>
+    </form>
+
+    <div class="filters">
+        Visa:
+        {% if filter_value == 'all' %}
+            <strong>Alla</strong> | <a href="{{ url_for('index', filter='open') }}">Endast ej sökta</a>
+        {% else %}
+            <a href="{{ url_for('index', filter='all') }}">Alla</a> | <strong>Endast ej sökta</strong>
+        {% endif %}
+    </div>
+
+    <h2>Jobb</h2>
+
+    {% if not jobs %}
+        <p>Inga jobb sparade ännu.</p>
+    {% else %}
+        {% for job in jobs %}
+            <div class="job-card">
+                <div class="job-header">
+                    <div>
+                        <strong>{{ job.title }}</strong> – {{ job.company }}
+                    </div>
+                    <div>
+                        {% if job.applied %}
+                            <span class="badge badge-applied">
+                                Sökt
+                                {% if job.date_applied %}
+                                    ({{ job.date_applied }})
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge badge-open">Inte sökt</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if job.link %}
+                    <div><a href="{{ job.link }}" target="_blank">Annons</a></div>
+                {% endif %}
+                {% if job.notes %}
+                    <div>{{ job.notes }}</div>
+                {% endif %}
+
+                <div class="actions">
+                    {% if not job.applied %}
+                        <form action="{{ url_for('mark_applied', job_id=job.id) }}" method="post" style="display:inline;">
+                            <button type="submit">Markera som sökt</button>
+                        </form>
+                    {% endif %}
+                    <form action="{{ url_for('delete_job', job_id=job.id) }}" method="post" style="display:inline;">
+                        <button type="submit">Ta bort</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>
