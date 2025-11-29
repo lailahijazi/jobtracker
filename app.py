@@ -100,10 +100,6 @@ def delete_job(job_id):
     save_jobs(jobs)
     return redirect(url_for("index"))
 
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
 import os
 
 if __name__ == "__main__":
